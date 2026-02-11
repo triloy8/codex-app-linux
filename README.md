@@ -11,7 +11,7 @@ Use this script and any generated binaries **at your own risk**.
 
 ## What This Does
 
-The script (`/home/tadhiel/codex-app-linux/repack-dmg-for-linux.sh`) automates:
+The script (`./codex-app-linux/repack-dmg-for-linux.sh`) automates:
 
 1. Extracting a macOS `.dmg` with `7z`.
 2. Locating the `.app` bundle and `app.asar`.
