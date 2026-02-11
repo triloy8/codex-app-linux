@@ -90,6 +90,6 @@ Then launch:
 
 ## Repository Contents
 
-- `/home/tadhiel/codex-app-linux/repack-dmg-for-linux.sh` — main repack script
-- `/home/tadhiel/codex-app-linux/Codex.dmg` — source DMG (local)
-- `/home/tadhiel/codex-app-linux/dist/` — generated Linux bundle(s)
+- `./codex-app-linux/repack-dmg-for-linux.sh` — main repack script
+- `./codex-app-linux/Codex.dmg` — source DMG (local)
+- `./codex-app-linux/dist/` — generated Linux bundle(s)
