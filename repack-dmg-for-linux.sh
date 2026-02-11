@@ -56,12 +56,8 @@ EOF
   log "Installing fresh $mod@$version for Electron $ELECTRON_VERSION"
   (
     cd "$build_root"
-    npm_config_runtime=electron \
-    npm_config_target="$ELECTRON_VERSION" \
-    npm_config_disturl=https://electronjs.org/headers \
-    npm_config_arch="$ARCH" \
-    npm_config_build_from_source=true \
-    npm install --no-package-lock
+    npm install --no-package-lock --ignore-scripts
+    npx --yes @electron/rebuild -v "$ELECTRON_VERSION" -w "$mod" --arch "$ARCH" --force
   )
 }
 
@@ -232,52 +228,18 @@ log "Skipping dependency install; using packaged app node_modules"
 
 rebuild_native_module() {
   local mod="$1"
-  local found=0
-  local rebuilt=0
   local mod_version=""
 
-  # Prefer unpacked modules first, then packed asar source tree.
-  for base in "$APP_UNPACKED_SRC" "$APP_SRC"; do
-    local mod_dir="$base/node_modules/$mod"
-    [[ -d "$mod_dir" ]] || continue
-    found=1
-
-    if [[ ! -f "$mod_dir/binding.gyp" ]]; then
-      log "No binding.gyp for $mod at $mod_dir, skipping"
-      continue
-    fi
-
-    log "Rebuilding native module: $mod in $mod_dir for Electron $ELECTRON_VERSION"
-    if (
-      cd "$mod_dir"
-      npm_config_runtime=electron \
-      npm_config_target="$ELECTRON_VERSION" \
-      npm_config_disturl=https://electronjs.org/headers \
-      npm_config_arch="$ARCH" \
-      npm_config_build_from_source=true \
-      npm rebuild
-    ); then
-      rebuilt=1
-      break
-    else
-      warn "Rebuild failed for $mod at $mod_dir"
-    fi
-  done
-
-  if [[ "$found" -eq 0 ]]; then
+  mod_version="$(get_module_version "$mod" || true)"
+  if [[ -z "$mod_version" ]]; then
     log "Module not found, skipping rebuild: $mod"
-  elif [[ "$rebuilt" -eq 0 ]]; then
-    mod_version="$(get_module_version "$mod" || true)"
-    if [[ -z "$mod_version" ]]; then
-      warn "Could not determine $mod version for fallback install; app may not run on Linux"
-      return 0
-    fi
+    return 0
+  fi
 
-    if install_fresh_module "$mod" "$mod_version"; then
-      replace_module_in_targets "$mod" "$WORK_DIR/native-mod-build/$mod/node_modules/$mod"
-    else
-      warn "Fallback fresh install failed for $mod@$mod_version; app may not run on Linux"
-    fi
+  if install_fresh_module "$mod" "$mod_version"; then
+    replace_module_in_targets "$mod" "$WORK_DIR/native-mod-build/$mod/node_modules/$mod"
+  else
+    warn "Fresh install/rebuild failed for $mod@$mod_version; app may not run on Linux"
   fi
 }
 
